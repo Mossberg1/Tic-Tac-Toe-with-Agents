@@ -1,6 +1,7 @@
 import pygame
 import sys
 import time
+from minimax_agent import MinimaxAgent
 from mouse import get_mouse_pos
 from board import Board
 from utils import valid_symbol
@@ -80,14 +81,28 @@ def clear_board():
     SCREEN.blit(BOARD, (64, 64))
 
 
+agent_symbol = 'O'
+agent = MinimaxAgent(agent_symbol)
+
+human_symbol = 'X'
+
+
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        if event.type == pygame.MOUSEBUTTONDOWN:
+        # Human move
+        if event.type == pygame.MOUSEBUTTONDOWN and symbol == human_symbol:
             if make_move(symbol):
-                symbol = 'O' if symbol == 'X' else 'X'
+                symbol = agent_symbol
+    
+    if symbol == agent_symbol:
+        move = agent.select_action(board)
+        if move:
+            x, y = move
+            board.make_move(x, y, agent_symbol)
+            symbol = human_symbol
     
     render_board()
     pygame.display.update()
