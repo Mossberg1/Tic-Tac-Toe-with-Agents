@@ -1,7 +1,12 @@
-class Agent():
+from abc import ABC, abstractmethod
+
+
+class Agent(ABC):
     def __init__(self):
         pass 
     
+    
+    @abstractmethod
     def select_action(self, board):
-        raise NotImplementedError()
+        pass
     

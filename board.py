@@ -79,3 +79,7 @@ class Board:
             [4, 5, 6],
             [7, 8, 9]
         ]
+    
+    
+    def __str__(self):
+        return ''.join(str(cell) if cell in ['X', 'O'] else '_' for row in self._board for cell in row)

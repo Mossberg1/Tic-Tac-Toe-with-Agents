@@ -1,10 +1,19 @@
 import pygame
 import sys
 import time
+from qlearn_agent import QLearnAgent
+from random_agent import RandomAgent
 from minimax_agent import MinimaxAgent
 from mouse import get_mouse_pos
 from board import Board
 from utils import valid_symbol
+from qlearn import train 
+
+print("Agent is training...")
+agent = QLearnAgent(symbol='O', learning_rate=0.1, discount_factor=0.9, exploration_rate=0.5)
+opponent = RandomAgent(symbol='X')
+
+train(agent, opponent, epochs=100000)
 
 
 pygame.init()
@@ -82,11 +91,9 @@ def clear_board():
 
 
 agent_symbol = 'O'
-agent = MinimaxAgent(agent_symbol)
-
 human_symbol = 'X'
 
-
+# Game loop
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
