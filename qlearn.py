@@ -5,6 +5,8 @@ from minimax_agent import MinimaxAgent
 
 
 def train(agent: QLearnAgent, opponent: Agent, epochs: int):
+    history = []
+    
     for epoch in range(epochs):
         board = Board()
         current_symbol = 'X'
@@ -26,8 +28,12 @@ def train(agent: QLearnAgent, opponent: Agent, epochs: int):
                 
                 winner = board.check_winner()
                 
-                if winner == agent._symbol: reward = 100
-                elif winner == 'DRAW': reward = 10
+                if winner == agent._symbol: 
+                    reward = 100
+                    history.append(1) # Win
+                elif winner == 'DRAW': 
+                    reward = 10
+                    history.append(0) # Draw
                 
                 agent.learn(state_before, action, reward, board)
                 current_symbol = 'X'
@@ -41,12 +47,16 @@ def train(agent: QLearnAgent, opponent: Agent, epochs: int):
                 if winner == 'X':
                     if last_state:
                         agent.learn(last_state, last_action, -100, board)
+                    history.append(-1) # Loss
                 elif winner == 'DRAW':
                     if last_state:
                         agent.learn(last_state, last_action, 10, board)
+                    history.append(0) # Draw
                 
                 current_symbol = 'O'
                 
         agent._exploration_rate *= 0.99995
         
     agent._exploration_rate = 0
+    
+    return history
