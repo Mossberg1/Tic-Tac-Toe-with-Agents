@@ -26,8 +26,8 @@ def train(agent: QLearnAgent, opponent: Agent, epochs: int):
                 
                 winner = board.check_winner()
                 
-                if winner == agent._symbol: reward = 1
-                elif winner == 'DRAW': reward = 0.5
+                if winner == agent._symbol: reward = 100
+                elif winner == 'DRAW': reward = 10
                 
                 agent.learn(state_before, action, reward, board)
                 current_symbol = 'X'
@@ -36,8 +36,17 @@ def train(agent: QLearnAgent, opponent: Agent, epochs: int):
                 x, y = action 
                 board.make_move(x, y, 'X')
                 
-                if board.check_winner() == 'X':
+                winner = board.check_winner()
+                
+                if winner == 'X':
                     if last_state:
-                        agent.learn(last_state, last_action, -1, board)
+                        agent.learn(last_state, last_action, -100, board)
+                elif winner == 'DRAW':
+                    if last_state:
+                        agent.learn(last_state, last_action, 10, board)
                 
                 current_symbol = 'O'
+                
+        agent._exploration_rate *= 0.99995
+        
+    agent._exploration_rate = 0

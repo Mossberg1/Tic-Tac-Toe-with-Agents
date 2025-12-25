@@ -11,7 +11,8 @@ from qlearn import train
 
 print("Agent is training...")
 agent = QLearnAgent(symbol='O', learning_rate=0.1, discount_factor=0.9, exploration_rate=0.5)
-opponent = RandomAgent(symbol='X')
+#opponent = RandomAgent(symbol='X')
+opponent = MinimaxAgent(symbol='X')
 
 train(agent, opponent, epochs=100000)
 
