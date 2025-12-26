@@ -16,25 +16,15 @@ agent = QLearnAgent(symbol='O', learning_rate=0.1, discount_factor=0.9, explorat
 opponent = RandomAgent(symbol='X')
 #opponent = MinimaxAgent(symbol='X')
 
-# 1. Train and get the complete history
-results = train(agent, opponent, epochs=50000)
+results = train(agent, opponent, epochs=100000)
+print("Training complete.")
 
-print("Training complete. Generating Learning Curve...")
-
-# 2. Process data with Pandas
 df = pd.DataFrame(results, columns=['result'])
 
-# Calculate Win Rate (Mapping 1 to 1.0, and everything else to 0.0 for this specific metric)
-# We use a window of 500 games to smooth out the noise
 df['win_rate'] = df['result'].apply(lambda x: 1 if x == 1 else 0).rolling(window=500).mean()
-
-# Calculate Loss Rate
 df['loss_rate'] = df['result'].apply(lambda x: 1 if x == -1 else 0).rolling(window=500).mean()
-
-# Calculate Draw Rate
 df['draw_rate'] = df['result'].apply(lambda x: 1 if x == 0 else 0).rolling(window=500).mean()
 
-# 3. Plot the Curves
 plt.figure(figsize=(12, 6))
 plt.plot(df['win_rate'], label='Win Rate', color='green', linewidth=2)
 plt.plot(df['draw_rate'], label='Draw Rate', color='blue', linewidth=1, linestyle='--')
@@ -45,7 +35,7 @@ plt.xlabel('Games Played')
 plt.ylabel('Rate (0.0 - 1.0)')
 plt.legend()
 plt.grid(True, alpha=0.3)
-plt.show() # This will pause the script until you close the graph window
+plt.show() 
 
 
 pygame.init()
