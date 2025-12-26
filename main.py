@@ -20,6 +20,7 @@ from qlearn import train
 
 parser = argparse.ArgumentParser(description='Tic Tac Toe RL Agent')
 parser.add_argument('-d', '--delete', action='store_true', help='Delete all saved .pkl models before starting')
+parser.add_argument('-p', '--plot', action='store_true', help='Plot the learning curve of the model')
 args = parser.parse_args()
 
 
@@ -64,31 +65,29 @@ else:
         training_opponent = RandomAgent(symbol='X')
         print('Training against RandomAgent')
         
-    results = train(agent, training_opponent, epochs=200000)
+    results = train(agent, training_opponent, epochs=100000)
     
     agent.save_model(MODEL_FILE)
 
-    df = pd.DataFrame(results, columns=['result'])
-    
-    window_size = 1000
-    df['win_rate'] = df['result'].apply(lambda x: 1 if x == 1 else 0).rolling(window=window_size).mean()
-    df['loss_rate'] = df['result'].apply(lambda x: 1 if x == -1 else 0).rolling(window=window_size).mean()
-    df['draw_rate'] = df['result'].apply(lambda x: 1 if x == 0 else 0).rolling(window=window_size).mean()
+    if args.plot: # Plot learning curve if -p cli argument is present
+        df = pd.DataFrame(results, columns=['result'])
+        
+        window_size = 1000
+        df['win_rate'] = df['result'].apply(lambda x: 1 if x == 1 else 0).rolling(window=window_size).mean()
+        df['loss_rate'] = df['result'].apply(lambda x: 1 if x == -1 else 0).rolling(window=window_size).mean()
+        df['draw_rate'] = df['result'].apply(lambda x: 1 if x == 0 else 0).rolling(window=window_size).mean()
 
-    plt.figure(figsize=(12, 6))
-    plt.plot(df['win_rate'], label='Win Rate', color='green')
-    plt.plot(df['draw_rate'], label='Draw Rate', color='blue', linestyle='--')
-    plt.plot(df['loss_rate'], label='Loss Rate', color='red', linestyle='--')
-    
-    plt.title('Agent Learning Curve (vs Reference Policy Only)')
-    plt.xlabel('Games Played')
-    plt.ylabel('Rate')
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.show()
-
-    # Finally set exploration to 0 for the game
-    agent._exploration_rate = 0
+        plt.figure(figsize=(12, 6))
+        plt.plot(df['win_rate'], label='Win Rate', color='green')
+        plt.plot(df['draw_rate'], label='Draw Rate', color='blue', linestyle='--')
+        plt.plot(df['loss_rate'], label='Loss Rate', color='red', linestyle='--')
+        
+        plt.title('Agent Learning Curve (vs Reference Policy Only)')
+        plt.xlabel('Games Played')
+        plt.ylabel('Rate')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.show()
 
 pygame.init()
 
