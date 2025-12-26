@@ -1,21 +1,94 @@
 import pygame
 import sys
 import time
+import os
+import pickle
+import argparse
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from glob import glob
 from qlearn_agent import QLearnAgent
 from random_agent import RandomAgent
 from minimax_agent import MinimaxAgent
+from reference_agent import ReferenceAgent
 from mouse import get_mouse_pos
 from board import Board
 from utils import valid_symbol
 from qlearn import train 
 
-print("Agent is training...")
+
+parser = argparse.ArgumentParser(description='Tic Tac Toe RL Agent')
+parser.add_argument('-d', '--delete', action='store_true', help='Delete all saved .pkl models before starting')
+args = parser.parse_args()
+
+
+if args.delete:
+    pkl_files = glob('*.pkl')
+    if pkl_files: 
+        for file in pkl_files:
+            try:
+                os.remove(file)
+                print(f' - Deleted: {file}')
+            except OSError as ex:
+                print(f' - Error deleting {file}: {ex}')
+    else:
+        print('No saved models found')
+
+
+MODEL_FILE = 'model.pkl'
+POLICY_FILE = 'perfectPolicy.p'
+
+use_reference_agent = False
+use_minimax_agent = False
+
 agent = QLearnAgent(symbol='O', learning_rate=0.1, discount_factor=0.9, exploration_rate=0.5)
-#opponent = RandomAgent(symbol='X')
-opponent = MinimaxAgent(symbol='X')
 
-train(agent, opponent, epochs=100000)
+if os.path.exists(MODEL_FILE):
+    print('Loading saved model...')
+    
+    agent.load_model(MODEL_FILE)
+    agent._exploration_rate = 0
+else: 
+    print("No saved model found. Starting training against Reference Policy...")
 
+    if use_reference_agent:    
+        with open(POLICY_FILE, 'rb') as f:
+            reference_model_data = pickle.load(f)
+        training_opponent = ReferenceAgent(symbol='X', model_data=reference_model_data)
+        print("Training against Imported Reference Model...")
+    elif use_minimax_agent:
+        training_opponent = MinimaxAgent(symbol='X')
+        print('Training against MinimaxAgent')
+    else:
+        training_opponent = RandomAgent(symbol='X')
+        print('Training against RandomAgent')
+        
+    results = train(agent, training_opponent, epochs=200000)
+    
+    agent.save_model(MODEL_FILE)
+
+    df = pd.DataFrame(results, columns=['result'])
+    
+    window_size = 1000
+    df['win_rate'] = df['result'].apply(lambda x: 1 if x == 1 else 0).rolling(window=window_size).mean()
+    df['loss_rate'] = df['result'].apply(lambda x: 1 if x == -1 else 0).rolling(window=window_size).mean()
+    df['draw_rate'] = df['result'].apply(lambda x: 1 if x == 0 else 0).rolling(window=window_size).mean()
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(df['win_rate'], label='Win Rate', color='green')
+    plt.plot(df['draw_rate'], label='Draw Rate', color='blue', linestyle='--')
+    plt.plot(df['loss_rate'], label='Loss Rate', color='red', linestyle='--')
+    
+    plt.title('Agent Learning Curve (vs Reference Policy Only)')
+    plt.xlabel('Games Played')
+    plt.ylabel('Rate')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.show()
+
+    # Finally set exploration to 0 for the game
+    agent._exploration_rate = 0
 
 pygame.init()
 
@@ -93,6 +166,7 @@ def clear_board():
 
 agent_symbol = 'O'
 human_symbol = 'X'
+
 
 # Game loop
 while True:
