@@ -1,5 +1,6 @@
 from board import Board
 from agent import Agent
+from tqdm import tqdm
 from qlearn_agent import QLearnAgent
 from minimax_agent import MinimaxAgent
 
@@ -7,7 +8,7 @@ from minimax_agent import MinimaxAgent
 def train(agent: QLearnAgent, opponent: Agent, epochs: int):
     history = []
     
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs), desc="Training"):
         board = Board()
         current_symbol = 'X'
         
@@ -29,10 +30,10 @@ def train(agent: QLearnAgent, opponent: Agent, epochs: int):
                 winner = board.check_winner()
                 
                 if winner == agent._symbol: 
-                    reward = 100
+                    reward = 10
                     history.append(1) # Win
                 elif winner == 'DRAW': 
-                    reward = 10
+                    reward = 5
                     history.append(0) # Draw
                 
                 agent.learn(state_before, action, reward, board)
@@ -50,7 +51,7 @@ def train(agent: QLearnAgent, opponent: Agent, epochs: int):
                     history.append(-1) # Loss
                 elif winner == 'DRAW':
                     if last_state:
-                        agent.learn(last_state, last_action, 10, board)
+                        agent.learn(last_state, last_action, 5, board)
                     history.append(0) # Draw
                 
                 current_symbol = 'O'
